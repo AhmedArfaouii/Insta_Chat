@@ -1,7 +1,9 @@
 import pika
 import ldap
-import base64
 import hashlib
+
+ou_dn = 'ou=users,dc=python666,dc=local'
+
 
 def get_user_info():
     print("Please enter user information:")
@@ -22,7 +24,6 @@ def get_user_info():
     return user_data
 
 
-ou_dn = 'ou=users,dc=python666,dc=local'
 def hash_password(password):
     # Hacher le mot de passe avec SHA-256
     hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
@@ -116,7 +117,7 @@ def check_rabbitmq_connection():
         print(f"Failed to connect to RabbitMQ: {e}")
 
 
-ldap_conn,ldap_base_dn= ldap_initialize()
+# ldap_conn,ldap_base_dn= ldap_initialize()
 #add_user_to_ldap(ldap_conn,ldap_base_dn)
 #authenticate_user(ldap_conn)
 #check_rabbitmq_connection()
