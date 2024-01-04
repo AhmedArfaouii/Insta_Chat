@@ -3,6 +3,7 @@ from tkinter import messagebox
 from RabbitMQAuth import RabbitMQAuth
 from MessageSender import MessageSender
 from MessageReceiver import MessageReceiver
+from datetime import datetime
 
 class LoginGUI:
     def __init__(self, root):
@@ -74,8 +75,12 @@ class ChatroomGUI:
 
 
     def send_message(self):
+
         recipient = self.recipient_entry.get()
-        message = self.message_entry.get()
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Get current date and time
+        message_content = self.message_entry.get()
+        message = f"{current_time} - {self.username}: {message_content}"  # Construct the message
+
         sender = MessageSender(self.username, self.password)
         sender.connect_to_rabbitmq()
         sender.generate_keys_if_not_exist(self.username)
