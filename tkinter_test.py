@@ -1,5 +1,5 @@
 import tkinter as tk
-from sender import send_to_rabbitmq
+from MessageSender import send_to_rabbitmq
 
 
 

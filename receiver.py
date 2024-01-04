@@ -1,5 +1,5 @@
 import pika
-from test import hash_password
+from ldapserver import hash_password
 
 def connexion ():  
             # Define RabbitMQ connection parameters with credentials
