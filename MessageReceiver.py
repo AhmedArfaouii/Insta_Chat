@@ -53,7 +53,8 @@ recipient_password = input("Enter your password: ")  # Replace with the recipien
 
 receiver = MessageReceiver(recipient_login, recipient_password)
 receiver.connect_to_rabbitmq()
-private_key = receiver.load_private_key_from_file("python_test_private.pem")  # Replace with the path to recipient's private key file
+file = recipient_login+"_private.pem"
+private_key = receiver.load_private_key_from_file(file)  # Replace with the path to recipient's private key file
 queue_name = "queue"  # Replace with the queue name where messages are sent
 
 receiver.receive_and_decrypt_message(queue_name, private_key)
