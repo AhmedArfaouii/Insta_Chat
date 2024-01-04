@@ -1,3 +1,4 @@
+import os.path
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hashes
@@ -14,6 +15,16 @@ class MessageSender:
         parameters = pika.ConnectionParameters('localhost', credentials=self.credentials)
         self.connection = pika.BlockingConnection(parameters)
         self.channel = self.connection.channel()
+
+    def generate_keys_if_not_exist(self, login):
+        private_key_filename = f"{login}_private.pem"
+        public_key_filename = f"{login}_public.pem"
+
+        if not (os.path.isfile(private_key_filename) and os.path.isfile(public_key_filename)):
+            private_key, public_key = self.generate_keys()
+
+            self.save_private_key_to_file(private_key, private_key_filename)
+            self.save_public_key_to_file(public_key, public_key_filename)
 
     def generate_keys(self):
         private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
@@ -45,20 +56,24 @@ class MessageSender:
         return public_key
     
     def encrypt_message(self, message, public_key):
-        cipher_text = public_key.encrypt(
-            message.encode(),
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None
+        try:
+            cipher_text = public_key.encrypt(
+                message.encode(),
+                padding.OAEP(
+                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                    algorithm=hashes.SHA256(),
+                    label=None
+                )
             )
-        )
-        return cipher_text
+            return cipher_text
+        except Exception as e:
+            print(f"Encryption failed: {e}")
+            return None
+
     def send_encrypted_message(self, recipient, encrypted_message, queue_name):
         self.channel.queue_declare(queue=queue_name)  # Declare the queue
         self.channel.basic_publish(exchange='', routing_key=queue_name, body=encrypted_message)
         print(f"Sent encrypted message to {recipient} in queue: {queue_name}")
-
 
     def close_connection(self):
         if self.connection:
@@ -75,16 +90,14 @@ sender_manager.connect_to_rabbitmq()
 recipient_login = input("Enter recipient's login: ")
 message_to_recipient = input("Enter message: ")
 
-# Generate keys for sender and recipient
-# sender_private_key, sender_public_key = sender_manager.generate_keys()
-# sender_manager.save_private_key_to_file(sender_private_key, f"{sender_login}_private.pem")
-# sender_manager.save_public_key_to_file(sender_public_key, f"{sender_login}_public.pem")
+# Generate keys if they don't exist
+sender_manager.generate_keys_if_not_exist(sender_login)
+sender_manager.generate_keys_if_not_exist(recipient_login)
 
-# recipient_private_key, recipient_public_key = sender_manager.generate_keys()
-# sender_manager.save_private_key_to_file(recipient_private_key, f"{recipient_login}_private.pem")
-# sender_manager.save_public_key_to_file(recipient_public_key, f"{recipient_login}_public.pem")
-
+# Load public key for recipient
 recipient_public_key = sender_manager.load_public_key_from_file(f"{recipient_login}_public.pem")
+
+# Encrypt and send message
 encrypted_message = sender_manager.encrypt_message(message_to_recipient, recipient_public_key)
 queue_name = "queue"
 sender_manager.send_encrypted_message(recipient_login, encrypted_message, queue_name)
