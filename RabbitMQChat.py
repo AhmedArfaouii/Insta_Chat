@@ -34,6 +34,7 @@ class LoginGUI:
             chatroom_root = tk.Tk()
             chatroom_root.title("Chatroom")
             chatroom_gui = ChatroomGUI(chatroom_root, username, password)
+            self.root.destroy()
             chatroom_root.mainloop()
         else:
             messagebox.showerror("Login Failed", "Invalid username or password. Please try again.")

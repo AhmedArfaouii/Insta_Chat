@@ -43,12 +43,14 @@ class MainApp:
         chat_root = tk.Tk()
         chat_root.title("Chat Room")
         chat = LoginGUI(chat_root)
+        self.root.destroy()
         chat_root.mainloop()
 
     def register(self):
         register_root = tk.Tk()
         register_root.title("Register User")
         register = TkinterAddUser(register_root)
+        self.root.destroy()
         register_root.mainloop()
 
 
