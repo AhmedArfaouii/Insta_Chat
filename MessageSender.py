@@ -4,7 +4,7 @@ from cryptography.hazmat.primitives import serialization, hashes
 import pika
 from ldapserver import hash_password
 
-class RabbitMQManager:
+class MessageSender:
     def __init__(self, login, password):
         self.credentials = pika.PlainCredentials(login, hash_password(password))
         self.connection = None
@@ -69,20 +69,20 @@ class RabbitMQManager:
 sender_login = input("Enter your login: ")
 sender_password = input("Enter your password: ")
 
-sender_manager = RabbitMQManager(sender_login, sender_password)
+sender_manager = MessageSender(sender_login, sender_password)
 sender_manager.connect_to_rabbitmq()
 
 recipient_login = input("Enter recipient's login: ")
 message_to_recipient = input("Enter message: ")
 
 # Generate keys for sender and recipient
-sender_private_key, sender_public_key = sender_manager.generate_keys()
-sender_manager.save_private_key_to_file(sender_private_key, f"{sender_login}_private.pem")
-sender_manager.save_public_key_to_file(sender_public_key, f"{sender_login}_public.pem")
+# sender_private_key, sender_public_key = sender_manager.generate_keys()
+# sender_manager.save_private_key_to_file(sender_private_key, f"{sender_login}_private.pem")
+# sender_manager.save_public_key_to_file(sender_public_key, f"{sender_login}_public.pem")
 
-recipient_private_key, recipient_public_key = sender_manager.generate_keys()
-sender_manager.save_private_key_to_file(recipient_private_key, f"{recipient_login}_private.pem")
-sender_manager.save_public_key_to_file(recipient_public_key, f"{recipient_login}_public.pem")
+# recipient_private_key, recipient_public_key = sender_manager.generate_keys()
+# sender_manager.save_private_key_to_file(recipient_private_key, f"{recipient_login}_private.pem")
+# sender_manager.save_public_key_to_file(recipient_public_key, f"{recipient_login}_public.pem")
 
 recipient_public_key = sender_manager.load_public_key_from_file(f"{recipient_login}_public.pem")
 encrypted_message = sender_manager.encrypt_message(message_to_recipient, recipient_public_key)
