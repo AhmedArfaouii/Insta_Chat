@@ -46,13 +46,13 @@ class MessageReceiver:
             print("Connection closed")
 
 
-recipient_login = "python_test"  # Replace with the recipient's login name
-recipient_password = "11001100"  # Replace with the recipient's password for RabbitMQ
+recipient_login = input("Enter your login to receiver your messages: ") # Replace with the recipient's login name
+recipient_password = input("Enter your password : ")  # Replace with the recipient's password for RabbitMQ
 
 receiver = MessageReceiver(recipient_login, recipient_password)
 receiver.connect_to_rabbitmq()
-
-private_key = receiver.load_private_key_from_file("python_test_private.pem")  # Replace with the path to recipient's private key file
+key = recipient_login+"_private.pem"
+private_key = receiver.load_private_key_from_file(key)  # Replace with the path to recipient's private key file
 queue_name = "queue"  # Replace with the queue name where messages are sent
 
 receiver.receive_and_decrypt_message(queue_name, private_key)
