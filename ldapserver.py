@@ -2,124 +2,125 @@ import pika
 import ldap
 import hashlib
 
-ou_dn = 'ou=users,dc=python666,dc=local'
-
-
-def get_user_info():
-    print("Please enter user information:")
-    login = input("Login: ")
-    first_name = input("First Name: ")
-    last_name = input("Last Name: ")
-    email = input("Email: ")
-    password = input("Password: ")  # Consider using getpass.getpass() for password input
+class LDAPServer:
     
-    user_data = {
-        'login': login,
-        'first_name': first_name,
-        'last_name': last_name,
-        'email': email,
-        'password': password
-    }
-    
-    return user_data
+    ou_dn = 'ou=users,dc=python666,dc=local'
+    def __init__(self):
+        self.ldap_connection = None
 
+    def get_user_info(self):
+        print("Please enter user information:")
+        login = input("Login: ")
+        first_name = input("First Name: ")
+        last_name = input("Last Name: ")
+        email = input("Email: ")
+        password = input("Password: ")  # Consider using getpass.getpass() for password input
 
-def hash_password(password):
-    # Hacher le mot de passe avec SHA-256
-    hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
-    return hashed_password
+        user_data = {
+            'login': login,
+            'first_name': first_name,
+            'last_name': last_name,
+            'email': email,
+            'password': password
+        }
 
-def ldap_initialize():
-    # Configurations LDAP
-    ldap_server = 'ldap://192.168.162.135'
-    ldap_base_dn = 'dc=python666,dc=local'
-    ldap_admin_dn = 'cn=admin,dc=python666,dc=local'
-    ldap_admin_password = 'looklook11'
+        return user_data
 
-    try:
-        # Initialiser la connexion au serveur LDAP
-        ldap_conn = ldap.initialize(ldap_server)
-        ldap_conn.simple_bind_s(ldap_admin_dn, ldap_admin_password)
-        print("Ldap Connexion initialized!")
-        return ldap_conn, ldap_base_dn
-    except ldap.LDAPError as e:
-        print(f"Erreur lors de l'initialisation de la connexion LDAP : {e}")
-        return None, None
+    def hash_password(self, password):
+        hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
+        return hashed_password
 
-def add_user_to_ldap(ldap_conn, ldap_base_dn):
-    user_data = get_user_info()
-    try:
-        # Définir les attributs LDAP pour le nouvel utilisateur
-        attrs = [
-            ('objectClass', [b'top', b'person', b'organizationalPerson', b'inetOrgPerson']),
-            ('uid', user_data['login'].encode('utf-8')),
-            ('cn', f'{user_data["first_name"]} {user_data["last_name"]}'.encode('utf-8')),
-            ('sn', user_data['last_name'].encode('utf-8')),
-            ('givenName', user_data['first_name'].encode('utf-8')),
-            ('mail', user_data['email'].encode('utf-8')),
-            ('userPassword', hash_password(user_data['password']).encode('utf-8')),
-            # Ajoutez d'autres attributs LDAP en fonction de votre schéma
-        ]
+    def ldap_initialize(self):
+        ldap_server = 'ldap://192.168.162.135'
+        ldap_base_dn = 'dc=python666,dc=local'
+        ldap_admin_dn = 'cn=admin,dc=python666,dc=local'
+        ldap_admin_password = 'looklook11'
 
-        # Définir le DN (Distinguished Name) pour le nouvel utilisateur
-        dn = f'cn={user_data["login"]},{ou_dn}'
+        try:
+            ldap_conn = ldap.initialize(ldap_server)
+            ldap_conn.simple_bind_s(ldap_admin_dn, ldap_admin_password)
+            print("LDAP Connection initialized!")
+            return ldap_conn, ldap_base_dn
+        except ldap.LDAPError as e:
+            print(f"Error initializing LDAP connection: {e}")
+            return None, None
 
-        # Ajouter l'utilisateur au serveur LDAP
-        ldap_conn.add_s(dn, attrs)
-        print(f"Utilisateur {user_data['login']} ajouté avec succès au serveur LDAP.")
-    except ldap.LDAPError as e:
-        print(f"Erreur lors de l'ajout de l'utilisateur au serveur LDAP: {e}")
+    def add_user_to_ldap(self, ldap_conn, ldap_base_dn):
+        user_data = self.get_user_info()
+        try:
+            attrs = [
+                ('objectClass', [b'top', b'person', b'organizationalPerson', b'inetOrgPerson']),
+                ('uid', user_data['login'].encode('utf-8')),
+                ('cn', f'{user_data["first_name"]} {user_data["last_name"]}'.encode('utf-8')),
+                ('sn', user_data['last_name'].encode('utf-8')),
+                ('givenName', user_data['first_name'].encode('utf-8')),
+                ('mail', user_data['email'].encode('utf-8')),
+                ('userPassword', self.hash_password(user_data['password']).encode('utf-8')),
+            ]
 
-def authenticate_user(ldap_conn):
-    login = input ("Enter your login: ")
-    initial_password = input ("Enter your password: ")
-    
-    try:
-        # Rechercher l'utilisateur dans le serveur LDAP
-        base_dn = 'dc=python666,dc=local'
-        search_filter = f'(uid={login})'
-        result = ldap_conn.search_s(base_dn, ldap.SCOPE_SUBTREE, search_filter)
+            dn = f'cn={user_data["login"]},{self.ou_dn}'
 
-        if not result:
-            print("Utilisateur non trouvé.")
+            ldap_conn.add_s(dn, attrs)
+            print(f"User {user_data['login']} successfully added to the LDAP server.")
+        except ldap.LDAPError as e:
+            print(f"Error adding user to the LDAP server: {e}")
+
+    def authenticate_user(self, ldap_conn):
+        login = input("Enter your login: ")
+        initial_password = input("Enter your password: ")
+
+        try:
+            base_dn = 'dc=python666,dc=local'
+            search_filter = f'(uid={login})'
+            result = ldap_conn.search_s(base_dn, ldap.SCOPE_SUBTREE, search_filter)
+
+            if not result:
+                print("User not found.")
+                return False
+
+            stored_password = result[0][1]['userPassword'][0].decode('utf-8')
+            hashed_password = self.hash_password(initial_password)
+
+            if stored_password == hashed_password:
+                print("Authentication successful.")
+                return True
+            else:
+                print("Authentication failed.")
+                return False
+        except ldap.LDAPError as e:
+            print(f"Error authenticating user: {e}")
             return False
 
-        # Récupérer le mot de passe haché de l'utilisateur dans le serveur LDAP
-        stored_password = result[0][1]['userPassword'][0].decode('utf-8')
-        
-        # Hacher le mot de passe fourni pour l'authentification
-        hashed_password = hash_password(initial_password)
+    def check_rabbitmq_connection(self):
+        try:
+            login = input("Enter your login: ")
+            initial_password = input("Enter your password: ")
+            password = self.hash_password(initial_password)
+            credentials = pika.PlainCredentials(login, password)
+            parameters = pika.ConnectionParameters('localhost', 5672, '/', credentials)
 
-        # Vérifier si les mots de passe correspondent
-        if stored_password == hashed_password:
-            print("Authentification réussie.")
-            return True
-        else:
-            print("Authentification échouée.")
-            return False
-    except ldap.LDAPError as e:
-        print(f"Erreur lors de l'authentification de l'utilisateur: {e}")
-        return False
-def check_rabbitmq_connection():
-    try:
-        # Define RabbitMQ connection parameters with credentials
-        login = input ("Enter your login : ")
-        intial_password = input ("Enter your password : ")
-        password = hash_password (intial_password)
-        credentials = pika.PlainCredentials(login, password)
-        parameters = pika.ConnectionParameters('localhost', 5672, '/', credentials)
+            connection = pika.BlockingConnection(parameters)
+            connection.close()
+            print("Connection to RabbitMQ established successfully: All good!")
+        except Exception as e:
+            print(f"Failed to connect to RabbitMQ: {e}")
 
-        # Establish a connection to RabbitMQ
-        connection = pika.BlockingConnection(parameters)
-        connection.close()  # Close the connection if successful
-        print("Connection to RabbitMQ established successfully: All good!")
-    except Exception as e:
-        print(f"Failed to connect to RabbitMQ: {e}")
+    def close_connection(self):
+        if self.ldap_connection:
+            self.ldap_connection.unbind_s()
+            print("LDAP Connection closed")
 
 
-# ldap_conn,ldap_base_dn= ldap_initialize()
-#add_user_to_ldap(ldap_conn,ldap_base_dn)
-#authenticate_user(ldap_conn)
-#check_rabbitmq_connection()
 
+# # Create an instance of the LDAPServer class
+# ldap_server = LDAPServer()
 
+# # Initialize LDAP connection
+# ldap_connection, ldap_base_dn = ldap_server.ldap_initialize()
+
+# # Add user to LDAP
+# if ldap_connection:
+#     ldap_server.add_user_to_ldap(ldap_connection, ldap_base_dn)
+
+# # Close LDAP connection
+# ldap_server.close_connection()
