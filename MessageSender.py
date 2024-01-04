@@ -78,28 +78,28 @@ class MessageSender:
     def close_connection(self):
         if self.connection:
             self.connection.close()
-            print("Connection closed")
+            
 
 # Example usage to send a message from one user to another
-sender_login = input("Enter your login: ")
-sender_password = input("Enter your password: ")
+# sender_login = input("Enter your login: ")
+# sender_password = input("Enter your password: ")
 
-sender_manager = MessageSender(sender_login, sender_password)
-sender_manager.connect_to_rabbitmq()
+# sender_manager = MessageSender(sender_login, sender_password)
+# sender_manager.connect_to_rabbitmq()
 
-recipient_login = input("Enter recipient's login: ")
-message_to_recipient = input("Enter message: ")
+# recipient_login = input("Enter recipient's login: ")
+# message_to_recipient = input("Enter message: ")
 
-# Generate keys if they don't exist
-sender_manager.generate_keys_if_not_exist(sender_login)
-sender_manager.generate_keys_if_not_exist(recipient_login)
+# # Generate keys if they don't exist
+# sender_manager.generate_keys_if_not_exist(sender_login)
+# sender_manager.generate_keys_if_not_exist(recipient_login)
 
-# Load public key for recipient
-recipient_public_key = sender_manager.load_public_key_from_file(f"{recipient_login}_public.pem")
+# # Load public key for recipient
+# recipient_public_key = sender_manager.load_public_key_from_file(f"{recipient_login}_public.pem")
 
-# Encrypt and send message
-encrypted_message = sender_manager.encrypt_message(message_to_recipient, recipient_public_key)
-queue_name = "queue"
-sender_manager.send_encrypted_message(recipient_login, encrypted_message, queue_name)
+# # Encrypt and send message
+# encrypted_message = sender_manager.encrypt_message(message_to_recipient, recipient_public_key)
+# queue_name = "queue"
+# sender_manager.send_encrypted_message(recipient_login, encrypted_message, queue_name)
 
-sender_manager.close_connection()
+# sender_manager.close_connection()

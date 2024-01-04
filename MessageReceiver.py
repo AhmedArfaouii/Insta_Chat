@@ -3,7 +3,7 @@ from cryptography.hazmat.primitives import serialization, hashes
 import pika
 
 from ldapserver import hash_password
-#test .ignore
+
 class MessageReceiver:
     def __init__(self, login, password):
         self.credentials = pika.PlainCredentials(login, hash_password(password))
@@ -35,28 +35,29 @@ class MessageReceiver:
                         label=None
                     )
                 ).decode()
-                print(f"Received and decrypted message: {decrypted_message}")
                 self.channel.basic_ack(method_frame.delivery_tag)
+                return decrypted_message
             else:
-                print("No message in the queue")
+                return None
         except Exception as e:
             print(f"Decryption failed: {e}")
+            return None
 
     def close_connection(self):
         if self.connection:
             self.connection.close()
-            print("Connection closed")
 
 
-recipient_login = input("Enter your login to receive your messages: ") # Replace with the recipient's login name
-recipient_password = input("Enter your password: ")  # Replace with the recipient's password for RabbitMQ
 
-receiver = MessageReceiver(recipient_login, recipient_password)
-receiver.connect_to_rabbitmq()
-file = recipient_login+"_private.pem"
-private_key = receiver.load_private_key_from_file(file)  # Replace with the path to recipient's private key file
-queue_name = "queue"  # Replace with the queue name where messages are sent
+# recipient_login = input("Enter your login to receive your messages: ") # Replace with the recipient's login name
+# recipient_password = input("Enter your password: ")  # Replace with the recipient's password for RabbitMQ
 
-receiver.receive_and_decrypt_message(queue_name, private_key)
+# receiver = MessageReceiver(recipient_login, recipient_password)
+# receiver.connect_to_rabbitmq()
+# file = recipient_login+"_private.pem"
+# private_key = receiver.load_private_key_from_file(file)  # Replace with the path to recipient's private key file
+# queue_name = "queue"  # Replace with the queue name where messages are sent
 
-receiver.close_connection()
+# receiver.receive_and_decrypt_message(queue_name, private_key)
+
+# receiver.close_connection()
