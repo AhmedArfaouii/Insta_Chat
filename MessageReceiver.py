@@ -3,7 +3,7 @@ from cryptography.hazmat.primitives import serialization, hashes
 import pika
 
 from ldapserver import hash_password
-
+#test .ignore
 class MessageReceiver:
     def __init__(self, login, password):
         self.credentials = pika.PlainCredentials(login, hash_password(password))
