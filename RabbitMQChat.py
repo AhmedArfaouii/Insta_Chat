@@ -70,7 +70,7 @@ class ChatroomGUI:
         receiver.close_connection()
         if received_message:
             self.chatroom_text.insert(tk.END, f"{received_message}\n")
-        self.root.after(1000, self.receive_messages)  # Repeat after 1000 milliseconds (1 second)
+        self.root.after(1000, self.receive_messages)  
 
 
     def send_message(self):
