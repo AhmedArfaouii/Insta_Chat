@@ -9,6 +9,7 @@ class MainApp:
         self.root.configure(bg='black')
         self.root.geometry("600x600")
 
+
         # Center the window
         self.center_window()
 

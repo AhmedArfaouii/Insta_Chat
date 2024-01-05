@@ -10,10 +10,12 @@ class TkinterAddUser:
         self.root.title("Add User to LDAP")
         self.callback = callback
 
+        
+
         label_style = ('Helvetica', 12)
         button_style = ('Helvetica', 12, 'bold')
 
-        self.root.configure(bg='black')  # Change background color
+
 
         self.ldap_server = LDAPServer()
         self.ldap_server.ldap_initialize()
@@ -22,15 +24,17 @@ class TkinterAddUser:
         self.entries = []
 
         for i, label_text in enumerate(labels):
-            label = tk.Label(self.root, text=label_text, font=label_style, bg='black', fg='white')  # Set label colors
+            label = tk.Label(self.root, text=label_text, font=label_style, bg='#F0F0F0', fg='black')  # Adjust label color
             label.grid(row=i, column=0, padx=10, pady=5, sticky='w')
             entry = tk.Entry(self.root, font=label_style)
             entry.grid(row=i, column=1, padx=10, pady=5, sticky='e')
             self.entries.append((label_text[:-1].lower(), entry))
 
         add_button = tk.Button(self.root, text="Add User", command=self.add_user_to_ldap,
-                               font=button_style, bg='green', fg='white')  # Change button colors
+                               font=button_style, bg='#4CAF50', fg='white')  # Adjust button color
         add_button.grid(row=len(labels), columnspan=2, pady=10)
+
+        self.center_window()
 
     def add_user_to_ldap(self):
         user_data = {}
@@ -73,27 +77,26 @@ class TkinterAddUser:
         else:
             messagebox.showerror("Error", "Failed to authenticate user with RabbitMQ.")
             rabbitmq_auth.connection.close()
-            
-    def center_elements(self):
-        self.root.update_idletasks()
-        width = self.root.winfo_width()
-        height = self.root.winfo_height()
+    
+    def center_window(self):
+        # Get screen width and height
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
 
-        x = (self.root.winfo_screenwidth() // 2) - (width // 2)
-        y = (self.root.winfo_screenheight() // 2) - (height // 2)
+        # Calculate x and y coordinates for the window to be centered
+        x = (screen_width / 2) - (600 / 2)
+        y = (screen_height / 2) - (600 / 2)
 
-        self.root.geometry(f"600x600+{x}+{y}")
-
+        self.root.geometry(f"600x600+{int(x)}+{int(y)}")
+           
 
     def create_user_gui(self):
         self.root.mainloop()
 
-  
+
 
 if __name__ == "__main__":
     root = tk.Tk()
-    root.configure(bg='black')  # Set main window background color
+    root.configure(bg='#FFFFF')  # Adjust window background color
     user_adder = TkinterAddUser(root)
     user_adder.create_user_gui()
-
-
