@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
 from ldapserver import LDAPServer
+from RabbitMQAuth import RabbitMQAuth
 from MessageSender import MessageSender
-
 
 class TkinterAddUser:
     def __init__(self, root, callback):
@@ -50,18 +50,29 @@ class TkinterAddUser:
 
         self.ldap_server.add_user_to_ldap(user_data)
 
-        # Generate private and public keys
+        # Authenticate with RabbitMQ using the new user's credentials
         username = user_data['login']
         password = user_data['password']
-        sender = MessageSender(username, password)
-        sender.connect_to_rabbitmq()
-        sender.generate_keys_if_not_exist(username)
-        sender.close_connection()
+        rabbitmq_auth = RabbitMQAuth(username, password)
+        rabbitmq_auth.connect_to_rabbitmq()
 
-        messagebox.showinfo("Success", "User added successfully.")
-        self.root.destroy()
-        if self.callback:
-            self.callback()
+        # Check if authentication is successful, create queue, generate keys, and close connection
+        if rabbitmq_auth.authenticate():
+            channel = rabbitmq_auth.channel
+            channel.queue_declare(queue=username)
+
+            sender = MessageSender(username, password)
+            sender.connect_to_rabbitmq()
+            sender.generate_keys_if_not_exist(username)
+            sender.close_connection()
+
+            messagebox.showinfo("Success", "User added successfully.")
+            self.root.destroy()
+            if self.callback:
+                self.callback()
+        else:
+            messagebox.showerror("Error", "Failed to authenticate user with RabbitMQ.")
+            rabbitmq_auth.connection.close()
 
     def create_user_gui(self):
         self.root.mainloop()
