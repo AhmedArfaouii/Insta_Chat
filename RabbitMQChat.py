@@ -33,18 +33,19 @@ class LoginGUI:
             messagebox.showinfo("Login Successful", "You have successfully logged in.")
             self.chatroom_window = tk.Toplevel(self.root)
             self.chatroom_window.title("Chatroom")
-            chatroom_gui = ChatroomGUI(self.chatroom_window, username, password)
+            chatroom_gui = ChatroomGUI(self.chatroom_window, username, password, self.root)  # Pass root window reference
             self.root.withdraw()  # Hide the main app window
         else:
             messagebox.showerror("Login Failed", "Invalid username or password. Please try again.")
 
 
 class ChatroomGUI:
-    def __init__(self, root, username, password):
+    def __init__(self, root, username, password, main_window):
         self.root = root
         self.root.title("Chatroom")
         self.username = username
         self.password = password
+        self.main_window = main_window  # Reference to the main window
 
         self.chatroom_text = tk.Text(root, height=20, width=50)
         self.chatroom_text.pack()
@@ -64,6 +65,9 @@ class ChatroomGUI:
         self.send_button = tk.Button(root, text="Send Message", command=self.send_message)
         self.send_button.pack()
 
+        self.logout_button = tk.Button(root, text="Logout", command=self.logout)
+        self.logout_button.pack()
+
     def receive_messages(self):
         receiver = MessageReceiver(self.username, self.password)
         receiver.connect_to_rabbitmq()
@@ -76,9 +80,9 @@ class ChatroomGUI:
 
     def send_message(self):
         recipient = self.recipient_entry.get()
-        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Get current date and time
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         message_content = self.message_entry.get()
-        message = f"{current_time} - {self.username}: {message_content}"  # Construct the message
+        message = f"{current_time} - {self.username}: {message_content}"
 
         sender = MessageSender(self.username, self.password)
         sender.connect_to_rabbitmq()
@@ -88,6 +92,10 @@ class ChatroomGUI:
         sender.send_encrypted_message(recipient, encrypted_message, recipient)
         sender.close_connection()
         messagebox.showinfo("Message Sent", "Your message has been sent.")
+
+    def logout(self):
+        self.main_window.deiconify()  # Re-show the main window
+        self.root.destroy()  # Close the chatroom window
 
 if __name__ == "__main__":
     root = tk.Tk()
