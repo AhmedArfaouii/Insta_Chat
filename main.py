@@ -47,10 +47,13 @@ class MainApp:
         chat_root.mainloop()
 
     def register(self):
+        def on_successful_registration():
+            self.root.deiconify()  # Show the main app window again
+
         register_root = tk.Tk()
         register_root.title("Register User")
-        register = TkinterAddUser(register_root)
-        self.root.destroy()
+        register = TkinterAddUser(register_root, on_successful_registration)
+        self.root.withdraw()  # Hide the main app window
         register_root.mainloop()
 
 
