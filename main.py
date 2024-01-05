@@ -2,7 +2,6 @@ import tkinter as tk
 from RabbitMQChat import LoginGUI
 from tkinter_add_user import TkinterAddUser
 
-
 class MainApp:
     def __init__(self, root):
         self.root = root
@@ -40,21 +39,19 @@ class MainApp:
         self.register_button.pack()
 
     def login(self):
-        chat_root = tk.Tk()
+        chat_root = tk.Toplevel()  # Use Toplevel instead of Tk
         chat_root.title("Chat Room")
         chat = LoginGUI(chat_root)
-        self.root.destroy()
-        chat_root.mainloop()
+        self.root.withdraw()  # Hide the main app window
 
     def register(self):
         def on_successful_registration():
             self.root.deiconify()  # Show the main app window again
 
-        register_root = tk.Tk()
+        register_root = tk.Toplevel()  # Use Toplevel instead of Tk
         register_root.title("Register User")
         register = TkinterAddUser(register_root, on_successful_registration)
         self.root.withdraw()  # Hide the main app window
-        register_root.mainloop()
 
 
 if __name__ == "__main__":

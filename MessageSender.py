@@ -71,7 +71,7 @@ class MessageSender:
             return None
 
     def send_encrypted_message(self, recipient, encrypted_message, queue_name):
-        self.channel.queue_declare(queue=queue_name)  # Declare the queue
+        self.channel.queue_declare(queue=recipient)  # Declare the queue
         self.channel.basic_publish(exchange='', routing_key=queue_name, body=encrypted_message)
         print(f"Sent encrypted message to {recipient} in queue: {queue_name}")
 

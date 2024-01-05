@@ -31,13 +31,13 @@ class LoginGUI:
 
         if auth.authenticate():
             messagebox.showinfo("Login Successful", "You have successfully logged in.")
-            chatroom_root = tk.Tk()
-            chatroom_root.title("Chatroom")
-            chatroom_gui = ChatroomGUI(chatroom_root, username, password)
-            self.root.destroy()
-            chatroom_root.mainloop()
+            self.chatroom_window = tk.Toplevel(self.root)
+            self.chatroom_window.title("Chatroom")
+            chatroom_gui = ChatroomGUI(self.chatroom_window, username, password)
+            self.root.withdraw()  # Hide the main app window
         else:
             messagebox.showerror("Login Failed", "Invalid username or password. Please try again.")
+
 
 class ChatroomGUI:
     def __init__(self, root, username, password):
@@ -68,15 +68,13 @@ class ChatroomGUI:
         receiver = MessageReceiver(self.username, self.password)
         receiver.connect_to_rabbitmq()
         private_key = receiver.load_private_key_from_file(f"{self.username}_private.pem")
-        received_message = receiver.receive_and_decrypt_message("queue", private_key)
+        received_message = receiver.receive_and_decrypt_message(self.username, private_key)
         receiver.close_connection()
         if received_message:
             self.chatroom_text.insert(tk.END, f"{received_message}\n")
         self.root.after(1000, self.receive_messages)  
 
-
     def send_message(self):
-
         recipient = self.recipient_entry.get()
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Get current date and time
         message_content = self.message_entry.get()
@@ -87,7 +85,7 @@ class ChatroomGUI:
         sender.generate_keys_if_not_exist(self.username)
         recipient_public_key = sender.load_public_key_from_file(f"{recipient}_public.pem")
         encrypted_message = sender.encrypt_message(message, recipient_public_key)
-        sender.send_encrypted_message(recipient, encrypted_message, "queue")
+        sender.send_encrypted_message(recipient, encrypted_message, recipient)
         sender.close_connection()
         messagebox.showinfo("Message Sent", "Your message has been sent.")
 
