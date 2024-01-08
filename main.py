@@ -3,6 +3,7 @@ from tkinter_add_user import TkinterAddUser
 from RabbitMQChat import LoginGUI
 
 #Adding threading
+#Adding active-users
 
 
 class MainApp:
