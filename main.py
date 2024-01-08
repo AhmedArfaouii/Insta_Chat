@@ -4,6 +4,7 @@ from RabbitMQChat import LoginGUI
 
 #Adding threading
 #Adding active-users
+#Chatroom UI fixes
 
 
 class MainApp:
