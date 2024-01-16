@@ -4,9 +4,11 @@ from RabbitMQAuth import RabbitMQAuth
 from MessageSender import MessageSender
 from MessageReceiver import MessageReceiver
 from datetime import datetime
+import threading
 
 class LoginGUI:
     def __init__(self, root):
+
         self.root = root
         self.root.title("Login")
 
@@ -15,6 +17,8 @@ class LoginGUI:
         self.login_entry = tk.Entry(root)
         self.login_entry.pack()
 
+
+
         self.password_label = tk.Label(root, text="Password:")
         self.password_label.pack()
         self.password_entry = tk.Entry(root, show="*")
@@ -22,6 +26,9 @@ class LoginGUI:
 
         self.login_button = tk.Button(root, text="Login", command=self.authenticate)
         self.login_button.pack()
+
+
+
 
     def authenticate(self):
         username = self.login_entry.get()
@@ -47,6 +54,10 @@ class ChatroomGUI:
         self.password = password
         self.main_window = main_window  # Reference to the main window
 
+        self.receive_thread = threading.Thread(target=self.background_receive_messages)  # Thread for receiving messages
+        self.receive_thread.daemon = True  # Set the thread as a daemon to stop when the main thread stops
+        self.receive_thread.start()  # Start the receive thread
+
         self.chatroom_text = tk.Text(root, height=20, width=50)
         self.chatroom_text.pack()
 
@@ -68,6 +79,19 @@ class ChatroomGUI:
         self.logout_button = tk.Button(root, text="Logout", command=self.logout)
         self.logout_button.pack()
 
+    def background_receive_messages(self):
+        # Function to be run in a separate thread for receiving messages
+        receiver = MessageReceiver(self.username, self.password)
+        receiver.connect_to_rabbitmq()
+        private_key = receiver.load_private_key_from_file(f"{self.username}_private.pem")
+        
+        # Continuously check for new messages in the background
+        while True:
+            received_message = receiver.receive_and_decrypt_message(self.username, private_key)
+            if received_message:
+                # Use Tkinter's after method to update the GUI in the main thread
+                self.root.after(0, lambda message=received_message: self.update_chatroom(message))
+
     def receive_messages(self):
         receiver = MessageReceiver(self.username, self.password)
         receiver.connect_to_rabbitmq()
@@ -77,6 +101,10 @@ class ChatroomGUI:
         if received_message:
             self.chatroom_text.insert(tk.END, f"{received_message}\n")
         self.root.after(1000, self.receive_messages)  
+
+    def update_chatroom(self, message):
+        # Update the chatroom GUI with the received message
+        self.chatroom_text.insert(tk.END, f"{message}\n")
 
     def send_message(self):
         recipient = self.recipient_entry.get()
