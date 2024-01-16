@@ -15,6 +15,7 @@ class LoginGUI:
         self.root = root
         self.root.title("Login")
         self.root.geometry("600x600")  # Set the size of the window
+        self.center_window()
 
         # Set the background color
         self.root.configure(bg='black')
@@ -49,6 +50,15 @@ class LoginGUI:
         self.login_button = tk.Button(root, text="Login", command=self.authenticate, font=('Helvetica', 16), bg='green', fg='white', width=20, height=2)
         self.login_button.pack(pady=20)
 
+    def center_window(self):
+        # Center the window on the screen
+        self.root.update_idletasks()
+        width = self.root.winfo_width()
+        height = self.root.winfo_height()
+        x = (self.root.winfo_screenwidth() - width) // 2
+        y = (self.root.winfo_screenheight() - height) // 2
+        self.root.geometry(f"{width}x{height}+{x}+{y}")
+
 
     def authenticate(self):
         username = self.login_entry.get()
@@ -70,40 +80,75 @@ class ChatroomGUI:
     def __init__(self, root, username, password, main_window):
         self.root = root
         self.root.title("Chatroom")
+
+        # Apply consistent style
+        label_style = ('Helvetica', 16)
+        entry_style = ('Helvetica', 14)
+        button_style = ('Helvetica', 14, 'bold')
+
+        # Set background color
+        self.root.configure(bg='#000000')
+
         self.username = username
         self.password = password
-        self.main_window = main_window  # Reference to the main window
+        self.main_window = main_window
 
-        self.receive_thread = threading.Thread(target=self.background_receive_messages)  # Thread for receiving messages
-        self.receive_thread.daemon = True  # Set the thread as a daemon to stop when the main thread stops
-        self.receive_thread.start()  # Start the receive thread
+        # Create a label for the chatroom title
+        self.title_label = tk.Label(
+            root,
+            text="Instachat",
+            font=('Helvetica', 36, 'italic', 'bold'),
+            fg='green',
+            bg='#000000'
+        )
+        self.title_label.pack(pady=20)
 
-        self.chatroom_text = tk.Text(root, height=20, width=50)
+        self.receive_thread = threading.Thread(target=self.background_receive_messages)
+        self.receive_thread.daemon = True
+        self.receive_thread.start()
+
+        self.chatroom_text = tk.Text(root, height=20, width=50, font=entry_style, fg='green', bg='#000000')
         self.chatroom_text.pack()
 
         self.receive_messages()
 
-        # Fetch all users from LDAP and initialize selected user
         self.users = self.fetch_all_users()
         self.selected_user = tk.StringVar()
 
-        self.recipient_label = tk.Label(root, text="Recipient:")
+        self.recipient_label = tk.Label(root, text="Recipient:", font=label_style, fg='white', bg='#000000')
         self.recipient_label.pack()
 
-        # Replace Entry with Combobox
-        self.recipient_combobox = ttk.Combobox(root, textvariable=self.selected_user, values=self.users)
+        self.recipient_combobox = ttk.Combobox(root, textvariable=self.selected_user, values=self.users, font=entry_style)
         self.recipient_combobox.pack()
 
-        self.message_label = tk.Label(root, text="Message:")
+        self.message_label = tk.Label(root, text="Message:", font=label_style, fg='white', bg='#000000')
         self.message_label.pack()
 
-        self.message_entry = tk.Entry(root)
+        self.message_entry = tk.Entry(root, font=entry_style)
         self.message_entry.pack()
 
-        self.send_button = tk.Button(root, text="Send Message", command=self.send_message)
+        self.send_button = tk.Button(
+            root,
+            text="Send Message",
+            command=self.send_message,
+            font=button_style,
+            bg='green',
+            fg='white',
+            width=20,
+            height=2
+        )
         self.send_button.pack()
 
-        self.logout_button = tk.Button(root, text="Logout", command=self.logout)
+        self.logout_button = tk.Button(
+            root,
+            text="Logout",
+            command=self.logout,
+            font=button_style,
+            bg='red',
+            fg='white',
+            width=20,
+            height=2
+        )
         self.logout_button.pack()
 
     def background_receive_messages(self):
@@ -147,7 +192,10 @@ class ChatroomGUI:
         message_content = self.message_entry.get()
         message = f"{current_time} - {self.username}: {message_content}"
 
-        # Rest of the code remains the same
+        self_message = f"{current_time} - {self.username} to: {recipient} : {message_content}"
+        self.update_chatroom(self_message)
+
+        
         sender = MessageSender(self.username, self.password)
         sender.connect_to_rabbitmq()
         sender.generate_keys_if_not_exist(self.username)
@@ -156,7 +204,7 @@ class ChatroomGUI:
         sender.send_encrypted_message(recipient, encrypted_message, recipient)
         sender.close_connection()
         self.message_entry.delete(0, tk.END)
-        messagebox.showinfo("Message Sent", "Your message has been sent.")
+        
 
 
     def logout(self):
