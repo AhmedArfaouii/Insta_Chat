@@ -119,6 +119,7 @@ class ChatroomGUI:
         encrypted_message = sender.encrypt_message(message, recipient_public_key)
         sender.send_encrypted_message(recipient, encrypted_message, recipient)
         sender.close_connection()
+        self.message_entry.delete(0, tk.END)
         messagebox.showinfo("Message Sent", "Your message has been sent.")
 
     def logout(self):
