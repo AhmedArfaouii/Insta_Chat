@@ -125,7 +125,7 @@ class ChatroomGUI:
         self.message_label.pack()
 
         self.message_entry = tk.Entry(root, font=entry_style)
-        self.message_entry.pack()
+        self.message_entry.pack(pady=5)
 
         self.send_button = tk.Button(
             root,
@@ -137,7 +137,8 @@ class ChatroomGUI:
             width=20,
             height=2
         )
-        self.send_button.pack()
+        self.send_button.pack(pady=5)
+        
 
         self.logout_button = tk.Button(
             root,
