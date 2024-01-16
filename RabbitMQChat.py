@@ -1,10 +1,13 @@
 import tkinter as tk
 from tkinter import messagebox
 from RabbitMQAuth import RabbitMQAuth
+from ldapserver import LDAPServer
 from MessageSender import MessageSender
 from MessageReceiver import MessageReceiver
 from datetime import datetime
 import threading
+from tkinter import ttk
+
 
 class LoginGUI:
     def __init__(self, root):
@@ -63,13 +66,20 @@ class ChatroomGUI:
 
         self.receive_messages()
 
+        # Fetch all users from LDAP and initialize selected user
+        self.users = self.fetch_all_users()
+        self.selected_user = tk.StringVar()
+
         self.recipient_label = tk.Label(root, text="Recipient:")
         self.recipient_label.pack()
-        self.recipient_entry = tk.Entry(root)
-        self.recipient_entry.pack()
+
+        # Replace Entry with Combobox
+        self.recipient_combobox = ttk.Combobox(root, textvariable=self.selected_user, values=self.users)
+        self.recipient_combobox.pack()
 
         self.message_label = tk.Label(root, text="Message:")
         self.message_label.pack()
+
         self.message_entry = tk.Entry(root)
         self.message_entry.pack()
 
@@ -106,12 +116,21 @@ class ChatroomGUI:
         # Update the chatroom GUI with the received message
         self.chatroom_text.insert(tk.END, f"{message}\n")
 
+    def fetch_all_users(self):
+        # Use the LDAPServer's get_all_users method to fetch users from LDAP
+        ldap_server = LDAPServer()
+        ldap_server.ldap_initialize()
+        users = ldap_server.get_all_users()
+        ldap_server.close_connection()
+        return [user.get('uid', '') for user in users]
+
     def send_message(self):
-        recipient = self.recipient_entry.get()
+        recipient = self.selected_user.get()
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         message_content = self.message_entry.get()
         message = f"{current_time} - {self.username}: {message_content}"
 
+        # Rest of the code remains the same
         sender = MessageSender(self.username, self.password)
         sender.connect_to_rabbitmq()
         sender.generate_keys_if_not_exist(self.username)
@@ -121,6 +140,7 @@ class ChatroomGUI:
         sender.close_connection()
         self.message_entry.delete(0, tk.END)
         messagebox.showinfo("Message Sent", "Your message has been sent.")
+
 
     def logout(self):
         self.main_window.deiconify()  # Re-show the main window

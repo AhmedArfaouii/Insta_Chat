@@ -1,11 +1,8 @@
-import tkinter as tk
 import ldap
 import hashlib
-
 def hash_password(password):
-    hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
-    return hashed_password
-
+        hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
+        return hashed_password
 class LDAPServer:
     ou_dn = 'ou=users,dc=python666,dc=local'
 
@@ -49,13 +46,23 @@ class LDAPServer:
         except ldap.LDAPError as e:
             print(f"Error adding user to the LDAP server: {e}")
 
+    def get_all_users(self):
+        if not self.ldap_connection:
+            self.ldap_initialize()
+
+        try:
+            search_filter = '(objectClass=inetOrgPerson)'
+            attributes = ['uid', 'cn', 'sn', 'givenName', 'mail']
+            result = self.ldap_connection.search_s(self.ou_dn, ldap.SCOPE_SUBTREE, search_filter, attributes)
+            users = [entry[1] for entry in result if isinstance(entry, tuple)]
+            return users
+        except ldap.LDAPError as e:
+            print(f"Error fetching users from the LDAP server: {e}")
+            return []
+
     def close_connection(self):
         if self.ldap_connection:
             self.ldap_connection.unbind_s()
             print("LDAP Connection closed")
-
-    def hash_password(self, password):
-        hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
-        return hashed_password
 
 
