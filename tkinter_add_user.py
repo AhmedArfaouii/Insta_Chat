@@ -10,12 +10,18 @@ class TkinterAddUser:
         self.root.title("Add User to LDAP")
         self.callback = callback
 
-        
+        # Use a consistent style
+        heading_style = ('Helvetica', 36, 'italic', 'bold')
+        label_style = ('Helvetica', 16)
+        entry_style = ('Helvetica', 14)
+        button_style = ('Helvetica', 14, 'bold')
 
-        label_style = ('Helvetica', 12)
-        button_style = ('Helvetica', 12, 'bold')
+        # Set the background color for the entire window
+        self.root.configure(bg='#000000')
 
-
+        # Instachat Label
+        instachat_label = tk.Label(root, text="Instachat", font=heading_style, fg='green', bg='#000000')
+        instachat_label.grid(row=0, column=0, columnspan=2, pady=20)
 
         self.ldap_server = LDAPServer()
         self.ldap_server.ldap_initialize()
@@ -24,17 +30,22 @@ class TkinterAddUser:
         self.entries = []
 
         for i, label_text in enumerate(labels):
-            label = tk.Label(self.root, text=label_text, font=label_style, bg='#F0F0F0', fg='black')  # Adjust label color
-            label.grid(row=i, column=0, padx=10, pady=5, sticky='w')
-            entry = tk.Entry(self.root, font=label_style)
-            entry.grid(row=i, column=1, padx=10, pady=5, sticky='e')
+            label = tk.Label(self.root, text=label_text, font=label_style, bg='#000000', fg='white')  # Adjust label color
+            label.grid(row=i + 1, column=0, padx=10, pady=5, sticky='e')
+            entry = tk.Entry(self.root, font=entry_style)
+            entry.grid(row=i + 1, column=1, padx=10, pady=5, sticky='w')
             self.entries.append((label_text[:-1].lower(), entry))
 
         add_button = tk.Button(self.root, text="Add User", command=self.add_user_to_ldap,
-                               font=button_style, bg='#4CAF50', fg='white')  # Adjust button color
-        add_button.grid(row=len(labels), columnspan=2, pady=10)
+                            font=button_style, bg='#4CAF50', fg='white')  # Adjust button color
+        add_button.grid(row=len(labels) + 1, column=0, columnspan=2, pady=10)
+
+        # Center the form elements within the window
+        for i in range(len(labels) + 2):
+            self.root.grid_columnconfigure(i, weight=1)
 
         self.center_window()
+
 
     def add_user_to_ldap(self):
         user_data = {}
@@ -46,7 +57,7 @@ class TkinterAddUser:
         keys = ['login', 'first name', 'last name', 'email', 'password']
         for key in keys:
             if key not in user_data:
-                print(f"Missing {key.capitalize()} field.")
+                messagebox.showerror("Error", f"Missing {key.capitalize()} field.")
                 return
 
         user_data['first_name'] = user_data.pop('first name')
@@ -60,7 +71,7 @@ class TkinterAddUser:
         rabbitmq_auth = RabbitMQAuth(username, password)
         rabbitmq_auth.connect_to_rabbitmq()
 
-        # Check if authentication is successful, create queue, generate keys, and close connection
+        # Check if authentication is successful, create a queue, generate keys, and close connection
         if rabbitmq_auth.authenticate():
             channel = rabbitmq_auth.channel
             channel.queue_declare(queue=username)
@@ -77,7 +88,7 @@ class TkinterAddUser:
         else:
             messagebox.showerror("Error", "Failed to authenticate user with RabbitMQ.")
             rabbitmq_auth.connection.close()
-    
+
     def center_window(self):
         # Get screen width and height
         screen_width = self.root.winfo_screenwidth()
@@ -88,15 +99,8 @@ class TkinterAddUser:
         y = (screen_height / 2) - (600 / 2)
 
         self.root.geometry(f"600x600+{int(x)}+{int(y)}")
-           
-
-    def create_user_gui(self):
-        self.root.mainloop()
-
-
 
 if __name__ == "__main__":
     root = tk.Tk()
-    root.configure(bg='#FFFFF')  # Adjust window background color
-    user_adder = TkinterAddUser(root)
-    user_adder.create_user_gui()
+    user_adder = TkinterAddUser(root, callback=None)
+    root.mainloop()

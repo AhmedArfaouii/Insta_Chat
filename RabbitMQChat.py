@@ -14,23 +14,40 @@ class LoginGUI:
 
         self.root = root
         self.root.title("Login")
+        self.root.geometry("600x600")  # Set the size of the window
 
-        self.login_label = tk.Label(root, text="Username:")
+        # Set the background color
+        self.root.configure(bg='black')
+
+        # Create a label for the title
+        self.title_label = tk.Label(
+            root,
+            text="Instachat",
+            font=('Helvetica', 36, 'italic', 'bold'),
+            fg='green',
+            bg='black'
+        )
+        self.title_label.pack(pady=50)
+
+        # Create a label for the username
+        self.login_label = tk.Label(root, text="Username:", font=('Helvetica', 16), fg='white', bg='black')
         self.login_label.pack()
-        self.login_entry = tk.Entry(root)
+
+        # Create an entry for the username
+        self.login_entry = tk.Entry(root, font=('Helvetica', 16))
         self.login_entry.pack()
 
-
-
-        self.password_label = tk.Label(root, text="Password:")
+        # Create a label for the password
+        self.password_label = tk.Label(root, text="Password:", font=('Helvetica', 16), fg='white', bg='black')
         self.password_label.pack()
-        self.password_entry = tk.Entry(root, show="*")
+
+        # Create an entry for the password
+        self.password_entry = tk.Entry(root, show="*", font=('Helvetica', 16))
         self.password_entry.pack()
 
-        self.login_button = tk.Button(root, text="Login", command=self.authenticate)
-        self.login_button.pack()
-
-
+        # Create a login button
+        self.login_button = tk.Button(root, text="Login", command=self.authenticate, font=('Helvetica', 16), bg='green', fg='white', width=20, height=2)
+        self.login_button.pack(pady=20)
 
 
     def authenticate(self):
