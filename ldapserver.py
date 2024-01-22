@@ -36,7 +36,7 @@ class LDAPServer:
                 ('sn', user_data['last_name'].encode('utf-8')),
                 ('givenName', user_data['first_name'].encode('utf-8')),
                 ('mail', user_data['email'].encode('utf-8')),
-                ('userPassword', self.hash_password(user_data['password']).encode('utf-8')),
+                ('userPassword', hash_password(user_data['password']).encode('utf-8')),
             ]
 
             dn = f'cn={user_data["login"]},{self.ou_dn}'

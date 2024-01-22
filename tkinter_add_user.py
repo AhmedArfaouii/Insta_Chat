@@ -32,7 +32,12 @@ class TkinterAddUser:
         for i, label_text in enumerate(labels):
             label = tk.Label(self.root, text=label_text, font=label_style, bg='#000000', fg='white')  # Adjust label color
             label.grid(row=i + 1, column=0, padx=10, pady=5, sticky='e')
-            entry = tk.Entry(self.root, font=entry_style)
+
+            if label_text == 'Password:':
+                entry = tk.Entry(self.root, font=entry_style, show='*')
+            else:
+                entry = tk.Entry(self.root, font=entry_style)
+
             entry.grid(row=i + 1, column=1, padx=10, pady=5, sticky='w')
             self.entries.append((label_text[:-1].lower(), entry))
 
